@@ -1,0 +1,58 @@
+@page
+@model otoQr.Pages.KullaniciPaneliModel
+@{
+    ViewData["Title"] = "Kullanıcı Paneli";
+}
+<div class="container">
+    <h2 class="mb-4 text-center">Kullanıcı Paneli</h2>
+    @if (Model.Arac == null)
+    {
+        <div class="alert alert-danger">Kullanıcıya ait araç bulunamadı.</div>
+    }
+    else
+    {
+        <div class="mb-3">
+            <strong>Plaka:</strong> @Model.Arac.Plaka <br />
+            <strong>Marka:</strong> @Model.Arac.Marka <br />
+            <strong>Model:</strong> @Model.Arac.Model <br />
+            <strong>Telefon:</strong> @Model.Arac.Telefon <br />
+            <strong>Bakım Zamanı:</strong> @(Model.Arac.BakimZamani?.ToString("yyyy-MM-dd") ?? "Belirtilmemiş") <br />
+        </div>
+        <h5>Gelen Mesajlar</h5>
+        <ul class="list-group mb-4">
+        @foreach (var msg in Model.Arac.IletisimMesajlari.OrderByDescending(x => x.Tarih))
+        {
+            <li class="list-group-item">
+                <strong>@msg.AdSoyad</strong> (@msg.Tarih.ToString("yyyy-MM-dd HH:mm"))<br />
+                <span class="badge bg-warning text-dark">@msg.SikayetTuru</span><br />
+                @msg.Mesaj
+                @if (!string.IsNullOrEmpty(msg.FotoUrl))
+                {
+                    <br /><img src="@msg.FotoUrl" alt="Şikayet Fotoğrafı" style="max-width:120px;max-height:120px;" />
+                }
+            </li>
+        }
+        </ul>
+        <h5>Bakım ve Servis Bilgileri</h5>
+        <form method="post">
+            <div class="mb-3">
+                <label class="form-label">Bakım Zamanı</label>
+                <input type="date" name="BakimZamani" class="form-control" value="@(Model.Arac.BakimZamani?.ToString("yyyy-MM-dd") ?? "")" />
+            </div>
+            <button type="submit" class="btn btn-success">Bakım Zamanını Güncelle</button>
+        </form>
+        @if (Model.BakimGuncellendi)
+        {
+            <div class="alert alert-success mt-2">Bakım zamanı güncellendi!</div>
+        }
+        <h6 class="mt-4">Servis Geçmişi</h6>
+        <ul class="list-group">
+        @foreach (var kayit in Model.Arac.ServisKayitlari.OrderByDescending(x => x.Tarih))
+        {
+            <li class="list-group-item">
+                <strong>@kayit.Tarih.ToString("yyyy-MM-dd"):</strong> @kayit.Not
+            </li>
+        }
+        </ul>
+    }
+</div>

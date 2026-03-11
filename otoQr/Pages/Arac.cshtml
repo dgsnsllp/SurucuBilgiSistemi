@@ -1,0 +1,81 @@
+@page "/arac/{id:guid}"
+@model otoQr.Pages.AracModel
+@{
+    ViewData["Title"] = "Araç Detay";
+}
+
+<div class="container">
+    <div class="custom-card mx-auto" style="max-width: 520px;">
+        <h2 class="mb-4 text-center" style="color:#1a237e;">Araç Detay</h2>
+        @if (Model.Arac == null)
+        {
+            <div class="alert alert-danger">Araç bulunamadı.</div>
+        }
+        else
+        {
+            <div class="mb-3">
+                <strong>Plaka:</strong> @Model.Arac.Plaka <br />
+                <strong>Marka:</strong> @Model.Arac.Marka <br />
+                <strong>Model:</strong> @Model.Arac.Model <br />
+                <strong>Telefon:</strong> <span style="letter-spacing:1px">@Model.Arac.Telefon</span> <br />
+                <strong>Bakım Zamanı:</strong> @(Model.Arac.BakimZamani?.ToString("yyyy-MM-dd") ?? "Belirtilmemiş") <br />
+            </div>
+            <div class="mb-4 p-3 border rounded bg-light">
+                <h5>İletişim</h5>
+                <p>Bu araçla ilgili bir sorun (ör. yanlış park, acil durum) varsa, aşağıdaki formdan araç sahibine mesaj bırakabilirsiniz:</p>
+                <form method="post" asp-page-handler="Mesaj">
+                    <div class="mb-2">
+                        <input type="text" name="AdSoyad" class="form-control" placeholder="Adınız Soyadınız" required />
+                    </div>
+                    <div class="mb-2">
+                        <textarea name="Mesaj" class="form-control" placeholder="Mesajınız" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Mesajı Gönder</button>
+                </form>
+                @if (Model.MesajBasarili)
+                {
+                    <div class="alert alert-success mt-2">Mesajınız iletildi!</div>
+                }
+                <hr />
+                <h6>Gelen Mesajlar</h6>
+                <ul class="list-group">
+                @foreach (var msg in Model.Arac.IletisimMesajlari.OrderByDescending(x => x.Tarih))
+                {
+                    <li class="list-group-item">
+                        <strong>@msg.AdSoyad</strong> (@msg.Tarih.ToString("yyyy-MM-dd HH:mm"))<br />
+                        @msg.Mesaj
+                    </li>
+                }
+                </ul>
+            </div>
+            @if (!Model.PublicView)
+            {
+                <hr />
+                <h4 class="mb-3" style="color:#388e3c;">Servis Geçmişi</h4>
+                <ul class="list-group mb-3">
+                    @foreach (var kayit in Model.Arac.ServisKayitlari.OrderByDescending(x => x.Tarih))
+                    {
+                        <li class="list-group-item">
+                            <strong>@kayit.Tarih.ToString("yyyy-MM-dd"):</strong> @kayit.Not
+                        </li>
+                    }
+                </ul>
+                <form method="post">
+                    <div class="mb-3">
+                        <label class="form-label">Yeni Servis Notu</label>
+                        <input type="text" name="YeniNot" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Bakım Zamanı (opsiyonel)</label>
+                        <input type="date" name="BakimZamani" class="form-control" value="@(Model.Arac.BakimZamani?.ToString("yyyy-MM-dd") ?? "")" />
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">Kaydet</button>
+                </form>
+                @if (Model.BasariliEkleme)
+                {
+                    <div class="alert alert-success mt-3">Kayıt başarıyla eklendi!</div>
+                }
+            }
+        }
+    </div>
+</div>

@@ -1,0 +1,61 @@
+﻿@page
+@model otoQr.Pages.IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+
+<div class="container">
+    <div class="row justify-content-center mb-4">
+        <div class="col-lg-8">
+            <div class="alert alert-primary shadow-sm p-4 mb-3">
+                <h3 class="mb-2" style="color:#1a237e;">Oto QR Ne İşe Yarar?</h3>
+                <p>Oto QR, aracınızın camına yapıştırılan bir QR kod ile, acil durumda veya yanlış park gibi durumlarda sizinle hızlıca iletişime geçilmesini sağlar. QR kodu okutan kişi, araç sahibine mesaj bırakabilir veya iletişim bilgilerine ulaşabilir.</p>
+            </div>
+            <div class="alert alert-success shadow-sm p-4">
+                <h4 class="mb-2" style="color:#388e3c;">Nasıl Çalışır?</h4>
+                <ol class="mb-0">
+                    <li>Araç bilgilerinizi ve iletişim numaranızı girip QR kodunuzu oluşturun.</li>
+                    <li>QR kodu aracınızın camına yapıştırın.</li>
+                    <li>Birisi QR kodu okuttuğunda, size mesaj bırakabilir veya doğrudan ulaşabilir.</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+    <div class="custom-card mx-auto" style="max-width: 480px;">
+        <div class="mb-4 d-flex justify-content-between">
+            <a href="/Login" class="btn btn-outline-primary">Kullanıcı Girişi</a>
+            <a href="/AdminLogin" class="btn btn-outline-dark">Admin Paneli</a>
+        </div>
+        <h2 class="mb-4 text-center" style="color:#1a237e;">Araç Kayıt</h2>
+        <form method="post">
+            <div class="mb-3">
+                <label class="form-label">Plaka</label>
+                <input type="text" name="Plaka" class="form-control" required />
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Marka</label>
+                <input type="text" name="Marka" class="form-control" required />
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Model</label>
+                <input type="text" name="Model" class="form-control" required />
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Telefon</label>
+                <input type="tel" name="Telefon" class="form-control" required placeholder="05xxxxxxxxx" pattern="0[0-9]{10}" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Şifre</label>
+                <input type="password" name="Sifre" class="form-control" required placeholder="Şifre belirleyin" />
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Kaydet</button>
+        </form>
+        @if (Model.BasariliKayit)
+        {
+            <div class="alert alert-success mt-3">Araç başarıyla kaydedildi! ID: @Model.SonEklenenId</div>
+            <div class="mt-3 text-center">
+                <strong>QR Kod:</strong><br />
+                <img src="@Model.QrCodeBase64" alt="QR Kod" style="max-width:200px;" />
+            </div>
+        }
+    </div>

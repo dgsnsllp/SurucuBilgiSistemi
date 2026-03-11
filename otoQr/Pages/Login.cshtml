@@ -1,0 +1,23 @@
+@page
+@model otoQr.Pages.LoginModel
+@{
+    ViewData["Title"] = "Kullanıcı Girişi";
+}
+<div class="container" style="max-width:400px;">
+    <h2 class="mb-4 text-center">Kullanıcı Girişi</h2>
+    <form method="post">
+        <div class="mb-3">
+            <label class="form-label">Telefon</label>
+            <input type="text" name="Telefon" class="form-control" required />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Şifre</label>
+            <input type="password" name="Sifre" class="form-control" required />
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Giriş Yap</button>
+    </form>
+    @if (Model.GirisBasarisiz)
+    {
+        <div class="alert alert-danger mt-3">Giriş bilgileri hatalı!</div>
+    }
+</div>

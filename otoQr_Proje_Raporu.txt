@@ -1,0 +1,171 @@
+otoQr Projesi Detaylı Rapor
+============================
+
+Proje Adı: otoQr
+----------------
+
+Proje Amacı:
+Araçlara özel QR kodları oluşturarak araç bilgilerini dijital ortamda yönetmeyi ve paylaşmayı amaçlayan bir web uygulamasıdır. Kullanıcılar araç bilgilerini sisteme ekleyebilir, yönetici paneli üzerinden araçları ve kullanıcıları kontrol edebilirler.
+
+Klasör ve Dosya Yapısı:
+-----------------------
+- otoQr/: Ana web uygulaması (ASP.NET Core)
+  - Pages/: Razor Pages (Admin, Login, Kullanıcı Paneli, Araç işlemleri)
+  - Models/: Veri modelleri (Arac.cs)
+  - Data/: Veritabanı işlemleri (AracVeritabani.cs)
+  - wwwroot/: Statik dosyalar (CSS, JS, kütüphaneler)
+  - appsettings.json: Genel yapılandırma dosyası
+  - appsettings.Development.json: Geliştirme ortamı yapılandırması
+- otoQr.AppHost/: Uygulama barındırma ve başlatma ile ilgili dosyalar
+- otoQr.ServiceDefaults/: Ortak servis ayarları ve uzantılar
+
+Kullanılan Teknolojiler:
+-----------------------
+- ASP.NET Core 8.0
+- Razor Pages
+- QRCoder (QR kod üretimi için)
+- System.Text.Json (JSON işlemleri için)
+- Bootstrap, jQuery (ön yüz için)
+- SQL Server LocalDB (bağlantı dizesi hazır, ancak asıl veri json dosyasında tutuluyor)
+
+Program.cs:
+-----------
+var builder = WebApplication.CreateBuilder(args);
+// Add services to the container.
+builder.Services.AddRazorPages();
+var app = builder.Build();
+// Configure the HTTP request pipeline.
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Error");
+    app.UseHsts();
+}
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+app.UseRouting();
+app.UseAuthorization();
+app.MapRazorPages();
+app.Run();
+
+Models/Arac.cs:
+---------------
+public class IletisimMesaji
+{
+    public DateTime Tarih { get; set; } = DateTime.Now;
+    public string AdSoyad { get; set; }
+    public string Mesaj { get; set; }
+    public string SikayetTuru { get; set; }
+    public string FotoUrl { get; set; }
+}
+public class Arac
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public string Plaka { get; set; }
+    public string Marka { get; set; }
+    public string Model { get; set; }
+    public string Telefon { get; set; }
+    public string Sifre { get; set; }
+    public DateTime? BakimZamani { get; set; }
+    public List<ServisKaydi> ServisKayitlari { get; set; } = new List<ServisKaydi>();
+    public List<IletisimMesaji> IletisimMesajlari { get; set; } = new List<IletisimMesaji>();
+}
+public class ServisKaydi
+{
+    public DateTime Tarih { get; set; } = DateTime.Now;
+    public string Not { get; set; }
+}
+
+Data/AracVeritabani.cs:
+-----------------------
+public static class AracVeritabani
+{
+    private static readonly string DosyaYolu = "araclar.json";
+    public static List<Arac> Araclar { get; set; } = new List<Arac>();
+    static AracVeritabani()
+    {
+        YedektenYukle();
+    }
+    public static void YedektenYukle()
+    {
+        if (System.IO.File.Exists(DosyaYolu))
+        {
+            var json = System.IO.File.ReadAllText(DosyaYolu);
+            var list = System.Text.Json.JsonSerializer.Deserialize<List<Arac>>(json);
+            if (list != null)
+                Araclar = list;
+        }
+    }
+    public static void Yedekle()
+    {
+        var json = System.Text.Json.JsonSerializer.Serialize(Araclar, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+        System.IO.File.WriteAllText(DosyaYolu, json);
+    }
+}
+
+Pages/Index.cshtml.cs:
+----------------------
+public class IndexModel : PageModel
+{
+    private readonly ILogger<IndexModel> _logger;
+    public IndexModel(ILogger<IndexModel> logger)
+    {
+        _logger = logger;
+    }
+    [BindProperty]
+    public string Plaka { get; set; }
+    [BindProperty]
+    public string Marka { get; set; }
+    [BindProperty]
+    public string Model { get; set; }
+    [BindProperty]
+    public string Telefon { get; set; }
+    [BindProperty]
+    public string Sifre { get; set; }
+    public bool BasariliKayit { get; set; } = false;
+    public Guid SonEklenenId { get; set; }
+    public string QrCodeBase64 { get; set; }
+    public void OnGet() { }
+    public void OnPost()
+    {
+        if (!string.IsNullOrWhiteSpace(Plaka) && !string.IsNullOrWhiteSpace(Marka) && !string.IsNullOrWhiteSpace(Model) && !string.IsNullOrWhiteSpace(Telefon) && !string.IsNullOrWhiteSpace(Sifre))
+        {
+            var yeniArac = new Arac
+            {
+                Plaka = Plaka,
+                Marka = Marka,
+                Model = Model,
+                Telefon = Telefon,
+                Sifre = Sifre
+            };
+            AracVeritabani.Araclar.Add(yeniArac);
+            AracVeritabani.Yedekle();
+            BasariliKayit = true;
+            SonEklenenId = yeniArac.Id;
+            // QR kod üretimi
+            string url = $"https://localhost:5001/arac/{yeniArac.Id}";
+            using (QRCodeGenerator qrGenerator = new QRCodeGenerator())
+            using (QRCodeData qrCodeData = qrGenerator.CreateQrCode(url, QRCodeGenerator.ECCLevel.Q))
+            // ...
+        }
+    }
+}
+
+Çalıştırma Talimatı:
+--------------------
+1. dotnet restore
+2. dotnet run --project otoQr/otoQr.csproj
+
+Notlar ve Uyarılar:
+-------------------
+- appsettings.Development.json dosyasının JSON formatı düzgün olmalıdır.
+- Projede null referans uyarıları ve platform uyarıları (Windows’a özel API kullanımı) mevcut, bunlar gözden geçirilebilir.
+- Kullanıcı şifreleri ve telefon gibi hassas bilgiler doğrudan saklanıyor, ek güvenlik önlemleri alınmalı.
+- JSON dosyasının bozulmamasına dikkat edilmeli.
+
+Geliştirme ve İyileştirme Önerileri:
+------------------------------------
+- Gerçek bir veritabanı entegrasyonu (EF Core ile SQL Server gibi)
+- Kullanıcı kimlik doğrulama ve yetkilendirme
+- QR kodlarının mobil uyumlu okunması ve yönlendirme
+- Hata yönetimi ve loglama iyileştirmeleri
+- Testler ve CI/CD entegrasyonu

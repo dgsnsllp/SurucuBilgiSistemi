@@ -1,0 +1,23 @@
+@page
+@model otoQr.Pages.AdminLoginModel
+@{
+    ViewData["Title"] = "Admin Girişi";
+}
+<div class="container" style="max-width:400px;">
+    <h2 class="mb-4 text-center">Admin Girişi</h2>
+    <form method="post">
+        <div class="mb-3">
+            <label class="form-label">Kullanıcı Adı</label>
+            <input type="text" name="KullaniciAdi" class="form-control" required />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Şifre</label>
+            <input type="password" name="Sifre" class="form-control" required />
+        </div>
+        <button type="submit" class="btn btn-dark w-100">Giriş Yap</button>
+    </form>
+    @if (Model.GirisBasarisiz)
+    {
+        <div class="alert alert-danger mt-3">Giriş bilgileri hatalı!</div>
+    }
+</div>

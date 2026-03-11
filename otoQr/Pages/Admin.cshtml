@@ -1,0 +1,105 @@
+@page "/admin"
+@model otoQr.Pages.AdminModel
+@{
+    ViewData["Title"] = "Admin Paneli";
+}
+
+<h2>Admin Paneli</h2>
+<div class="mb-4">
+    <form method="get">
+        <div class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <input type="text" name="Sorgu" class="form-control" placeholder="Plaka, Marka veya Model ile ara" value="@Request.Query["Sorgu"]" />
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">Ara</button>
+            </div>
+        </div>
+    </form>
+</div>
+<div class="mb-4">
+    <h4>Yeni Araç Ekle</h4>
+    <form method="post" asp-page-handler="Ekle" class="row g-2 align-items-end">
+        <div class="col-md-2">
+            <input type="text" name="Plaka" class="form-control" placeholder="Plaka" required />
+        </div>
+        <div class="col-md-2">
+            <input type="text" name="Marka" class="form-control" placeholder="Marka" required />
+        </div>
+        <div class="col-md-2">
+            <input type="text" name="Model" class="form-control" placeholder="Model" required />
+        </div>
+        <div class="col-md-3">
+            <input type="tel" name="Telefon" class="form-control" placeholder="05xxxxxxxxx" required pattern="0[0-9]{10}" />
+        </div>
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-success w-100">Ekle</button>
+        </div>
+    </form>
+</div>
+@if (Model.Araclar.Count == 0)
+{
+    <div class="alert alert-info">Kayıtlı araç yok.</div>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Plaka</th>
+                <th>Marka</th>
+                <th>Model</th>
+                <th>Telefon</th>
+                <th>ID</th>
+                <th>İşlemler</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var arac in Model.Araclar)
+        {
+            <tr>
+                <td>@arac.Plaka</td>
+                <td>@arac.Marka</td>
+                <td>@arac.Model</td>
+                <td>@arac.Telefon</td>
+                <td>@arac.Id</td>
+                <td>
+                    <a class="btn btn-sm btn-info" href="/admin?sorgu=@arac.Plaka">Mesajlar</a>
+                    <a class="btn btn-sm btn-secondary" href="/arac/@arac.Id">Detay</a>
+                    <form method="post" asp-page-handler="Sil" asp-route-id="@arac.Id" style="display:inline">
+                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Silmek istediğinize emin misiniz?')">Sil</button>
+                    </form>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+@if (Model.SeciliArac != null)
+{
+    <div class="mt-4 p-3 border rounded bg-light">
+        <h5>@Model.SeciliArac.Plaka - Mesajlar</h5>
+        @if (Model.SeciliArac.IletisimMesajlari.Count == 0)
+        {
+            <div class="alert alert-info">Bu araca ait mesaj yok.</div>
+        }
+        else
+        {
+            <ul class="list-group">
+            @foreach (var msg in Model.SeciliArac.IletisimMesajlari.OrderByDescending(x => x.Tarih))
+            {
+                <li class="list-group-item">
+                    <strong>@msg.AdSoyad</strong> (@msg.Tarih.ToString("yyyy-MM-dd HH:mm"))<br />
+                    <span class="badge bg-warning text-dark">@msg.SikayetTuru</span><br />
+                    @msg.Mesaj
+                    @if (!string.IsNullOrEmpty(msg.FotoUrl))
+                    {
+                        <br /><img src="@msg.FotoUrl" alt="Şikayet Fotoğrafı" style="max-width:120px;max-height:120px;" />
+                    }
+                </li>
+            }
+            </ul>
+        }
+    </div>
+}
